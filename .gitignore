@@ -1,0 +1,8 @@
+# Derivados do `scripts/landing.py` — reconstruíveis a qualquer hora, e por
+# isso fora do repositório. `img/` são as artes recomprimidas para a web;
+# `arquivos/` são os 17 MB de EPUB e PDF que o leitor baixa.
+#
+# ⚠️ A barra na frente é obrigatória. Sem ela o padrão casa em QUALQUER nível
+# — foi assim que uma regra de imagem já engoliu pasta de código neste repo.
+/img/
+/arquivos/

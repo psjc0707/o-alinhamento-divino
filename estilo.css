@@ -1,0 +1,534 @@
+/* ============================================================
+   O Alinhamento Divino — landing
+
+   Os valores desta folha saem de `identidade/tokens.json`, que é a fonte
+   única da marca (padrão O1). Não inventar cor nem fonte aqui: se a peça
+   precisou de um valor que não está no token, é o token que está errado.
+
+   Motion: só `transform` e `opacity` (as duas que a GPU anima sem recalcular
+   layout). Nada anima width/height/top/left — engasgo é bug, não charme.
+   ============================================================ */
+
+:root {
+  --fundo:          #1B0F33;
+  --fundo-profundo: #150C29;
+  --violeta:        #2E1B52;
+  --ouro:           #D9A441;
+  --ouro-claro:     #F0CE86;
+  --texto:          #F6F1E8;
+  --texto-suave:    #E4D9C4;
+
+  --serif: 'Cormorant Garamond', 'Cormorant', Cormorant, Garamond,
+           'Times New Roman', serif;
+
+  --curta: 180ms;
+  --media: 320ms;
+  --longa: 560ms;
+  --easing: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  --largura: 1120px;
+  --estreita: 720px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(1.05rem, 0.98rem + 0.35vw, 1.24rem);
+  line-height: 1.72;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+img { max-width: 100%; height: auto; display: block; }
+
+::selection { background: var(--ouro); color: var(--fundo-profundo); }
+
+/* ---------- tipografia ---------- */
+
+h1, h2, h3 {
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: 0.02em;
+}
+
+h1 {
+  font-size: clamp(3.1rem, 1.6rem + 6.4vw, 6.4rem);
+  text-transform: uppercase;
+  letter-spacing: 0.035em;
+  text-shadow: 0 4px 40px rgba(0, 0, 0, 0.5);
+}
+
+h2 {
+  font-size: clamp(1.95rem, 1.3rem + 2.6vw, 3.1rem);
+  max-width: 20ch;
+}
+
+h3 {
+  font-size: clamp(1.6rem, 1.2rem + 1.5vw, 2.3rem);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.sobretitulo, .rotulo, .volume-num {
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: var(--ouro-claro);
+  opacity: 0.9;
+}
+
+.prosa { max-width: 62ch; color: var(--texto-suave); margin-bottom: 1.5em; }
+.prosa-larga { max-width: 70ch; }
+
+/* ---------- filete: o único elemento gráfico da marca ---------- */
+
+.filete {
+  width: 110px;
+  height: 1px;
+  background: var(--ouro);
+  opacity: 0.75;
+  margin: 1.9rem auto 2.4rem;
+  /* Cresce a partir do centro em vez de aparecer pronto. Anima o eixo X do
+     transform — não a largura, que causaria reflow a cada quadro. */
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--longa) var(--easing);
+}
+.filete-esq { margin-left: 0; margin-right: 0; transform-origin: left; }
+.entra.dentro .filete,
+.revela.dentro.filete,
+.filete.dentro { transform: scaleX(1); }
+
+/* ---------- botões ---------- */
+
+.botao {
+  display: inline-block;
+  padding: 1.05rem 2.6rem;
+  font-family: var(--serif);
+  font-size: 1.02rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid var(--ouro);
+  transition: transform var(--curta) var(--easing),
+              background-color var(--media) var(--easing),
+              color var(--media) var(--easing),
+              box-shadow var(--media) var(--easing);
+}
+
+.botao-ouro {
+  background: var(--ouro);
+  color: var(--fundo-profundo);
+  box-shadow: 0 6px 30px rgba(217, 164, 65, 0.18);
+}
+.botao-ouro:hover {
+  background: var(--ouro-claro);
+  border-color: var(--ouro-claro);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgba(217, 164, 65, 0.3);
+}
+
+.botao-linha { background: transparent; color: var(--ouro-claro); }
+.botao-linha:hover {
+  background: rgba(217, 164, 65, 0.1);
+  transform: translateY(-2px);
+}
+
+.botao:active { transform: translateY(0); }
+.botao:focus-visible { outline: 2px solid var(--ouro-claro); outline-offset: 4px; }
+.botao-largo { width: 100%; text-align: center; }
+
+/* ---------- herói ---------- */
+
+.heroi {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 6rem 1.5rem 8rem;
+  overflow: hidden;
+  background: var(--fundo-profundo);
+}
+
+.heroi-arte { position: absolute; inset: 0; }
+.heroi-arte img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: 50% 40%;
+  /* 0.55 apagava a arte quase por completo debaixo do véu — o herói ficava
+     um retângulo índigo liso. A arte é line art dourada sobre o MESMO índigo
+     do fundo, então ela aguenta presença sem roubar contraste do título. */
+  opacity: 0.85;
+  /* Deriva lenta e contínua. Só transform — não custa layout. */
+  animation: deriva 34s var(--easing) infinite alternate;
+}
+
+@keyframes deriva {
+  from { transform: scale(1.06) translate3d(0, 0, 0); }
+  to   { transform: scale(1.14) translate3d(0, -1.6%, 0); }
+}
+
+/* O véu é o que garante contraste do texto sobre a arte — sem ele o título
+   fica ilegível em qualquer imagem clara. */
+.heroi-veu {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 82% 62% at 50% 38%,
+      rgba(27, 15, 51, 0.12) 0%, rgba(27, 15, 51, 0.62) 58%,
+      rgba(27, 15, 51, 0.94) 88%, var(--fundo) 100%),
+    linear-gradient(to bottom,
+      rgba(21, 12, 41, 0.55) 0%, rgba(27, 15, 51, 0.2) 35%,
+      rgba(27, 15, 51, 0.85) 80%, var(--fundo) 100%);
+}
+
+.heroi-conteudo { position: relative; max-width: 780px; }
+.heroi-linha {
+  margin: 2.2rem auto 0;
+  max-width: 46ch;
+  font-size: 1.16em;
+  font-style: italic;
+  color: var(--texto-suave);
+}
+.heroi-oferta { margin: 1.6rem auto 2.8rem; max-width: 44ch; }
+.heroi-oferta strong { color: var(--ouro-claro); font-weight: 500; }
+
+.rolar {
+  position: absolute;
+  bottom: 2.6rem; left: 50%;
+  width: 1px; height: 58px;
+  background: rgba(217, 164, 65, 0.25);
+  transform: translateX(-50%);
+  overflow: hidden;
+}
+.rolar span {
+  display: block; width: 100%; height: 40%;
+  background: var(--ouro);
+  animation: desce 2.6s var(--easing) infinite;
+}
+@keyframes desce {
+  0%   { transform: translateY(-100%); }
+  60%, 100% { transform: translateY(250%); }
+}
+
+/* ---------- seções ---------- */
+
+.secao {
+  max-width: var(--largura);
+  margin: 0 auto;
+  padding: clamp(5.5rem, 4rem + 7vw, 10rem) 1.5rem;
+}
+.secao-estreita { max-width: var(--estreita); }
+
+.numeros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 2.4rem 1.5rem;
+  margin-top: 3.6rem;
+  padding-top: 3rem;
+  border-top: 1px solid rgba(217, 164, 65, 0.2);
+}
+.numeros dt {
+  font-size: clamp(2.4rem, 1.8rem + 2vw, 3.4rem);
+  color: var(--ouro-claro);
+  line-height: 1;
+}
+.numeros dd {
+  margin-top: 0.7rem;
+  font-size: 0.92rem;
+  letter-spacing: 0.05em;
+  color: var(--texto-suave);
+  opacity: 0.82;
+}
+
+/* ---------- volumes ---------- */
+
+.volumes { display: grid; gap: clamp(3.5rem, 2rem + 5vw, 6rem); margin-top: 4rem; }
+
+.volume {
+  display: grid;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
+  gap: clamp(2rem, 1rem + 3vw, 4rem);
+  align-items: center;
+}
+.volume:nth-child(even) .volume-capa { order: 2; }
+
+.volume-capa { position: relative; }
+.volume-capa img {
+  width: 100%;
+  border: 1px solid rgba(217, 164, 65, 0.28);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  transition: transform var(--longa) var(--easing),
+              box-shadow var(--longa) var(--easing);
+}
+.volume:hover .volume-capa img {
+  transform: translateY(-8px);
+  box-shadow: 0 34px 80px rgba(0, 0, 0, 0.62);
+}
+
+.fita {
+  position: absolute;
+  top: 1.1rem; left: -0.6rem;
+  padding: 0.42rem 1.1rem;
+  background: var(--ouro);
+  color: var(--fundo-profundo);
+  font-size: 0.76rem;
+  font-weight: 500;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.volume-sub {
+  margin: 0.7rem 0 1.6rem;
+  font-style: italic;
+  color: var(--ouro-claro);
+  opacity: 0.88;
+}
+.volume-num { margin-bottom: 0.9rem; }
+
+.ficha { list-style: none; margin: 0 0 2.2rem; }
+.ficha li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.98rem;
+  color: var(--texto-suave);
+}
+/* Marcador é filete, não bullet nem ícone: a marca não tem pictograma. */
+.ficha li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0.82em;
+  width: 12px; height: 1px;
+  background: var(--ouro);
+  opacity: 0.7;
+}
+
+/* ---------- galeria ---------- */
+
+.secao-arte { max-width: 1240px; }
+.galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.4rem;
+  margin-top: 3.4rem;
+}
+.galeria figure { overflow: hidden; border: 1px solid rgba(217, 164, 65, 0.18); }
+.galeria img {
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  object-fit: cover;
+  transition: transform var(--longa) var(--easing);
+}
+.galeria figure:hover img { transform: scale(1.05); }
+
+/* ---------- autor ---------- */
+
+.secao-autor { text-align: left; }
+.citacao { margin: 2.8rem 0; padding-left: 1.8rem; border-left: 1px solid var(--ouro); }
+.citacao p {
+  font-size: clamp(1.3rem, 1.05rem + 1vw, 1.75rem);
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--texto);
+}
+.citacao cite {
+  display: block;
+  margin-top: 1.1rem;
+  font-size: 0.86rem;
+  font-style: normal;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ouro-claro);
+  opacity: 0.75;
+}
+.citacao-fim { margin-top: 3.2rem; }
+
+/* ---------- formulário ---------- */
+
+.secao-receber {
+  max-width: var(--estreita);
+  padding-bottom: clamp(6rem, 4rem + 7vw, 11rem);
+}
+.receber-caixa {
+  padding: clamp(2.4rem, 1.5rem + 3vw, 4.4rem);
+  background: linear-gradient(160deg, var(--violeta) 0%, var(--fundo-profundo) 100%);
+  border: 1px solid rgba(217, 164, 65, 0.32);
+  text-align: center;
+}
+.receber-caixa h2 { max-width: none; margin-inline: auto; }
+.receber-caixa .prosa { margin-inline: auto; }
+
+form { margin-top: 2.8rem; text-align: left; }
+
+.campo { margin-bottom: 1.5rem; }
+.campo label {
+  display: block;
+  margin-bottom: 0.55rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ouro-claro);
+  opacity: 0.85;
+}
+.campo input {
+  width: 100%;
+  padding: 0.95rem 1.1rem;
+  font-family: var(--serif);
+  font-size: 1.06rem;
+  color: var(--texto);
+  background: rgba(21, 12, 41, 0.6);
+  border: 1px solid rgba(217, 164, 65, 0.28);
+  transition: border-color var(--media) var(--easing),
+              box-shadow var(--media) var(--easing);
+}
+.campo input::placeholder { color: rgba(246, 241, 232, 0.32); }
+.campo input:focus {
+  outline: none;
+  border-color: var(--ouro);
+  box-shadow: 0 0 0 3px rgba(217, 164, 65, 0.14);
+}
+/* Erro nunca é só a cor da borda — quem não distingue vermelho precisa do
+   texto. A mensagem vai no #aviso, e o campo ganha marca visível. */
+.campo input[aria-invalid="true"] {
+  border-color: #E38A7A;
+  box-shadow: 0 0 0 3px rgba(227, 138, 122, 0.16);
+}
+
+.consentimento {
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  margin: 1.9rem 0 2.2rem;
+  font-size: 0.93rem;
+  line-height: 1.55;
+  color: var(--texto-suave);
+  opacity: 0.9;
+  cursor: pointer;
+}
+.consentimento input {
+  flex: 0 0 auto;
+  width: 19px; height: 19px;
+  margin-top: 0.28em;
+  accent-color: var(--ouro);
+  cursor: pointer;
+}
+
+.aviso {
+  margin-top: 1.2rem;
+  min-height: 1.5em;
+  font-size: 0.95rem;
+  text-align: center;
+  color: var(--ouro-claro);
+}
+.aviso[data-erro="sim"] { color: #E9A092; }
+
+/* ---------- download revelado ---------- */
+
+.download { margin-top: 1rem; }
+.download-titulo {
+  font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.2rem);
+  color: var(--ouro-claro);
+  margin-bottom: 1.4rem;
+}
+.download-botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.6rem;
+}
+
+/* ---------- rodapé ---------- */
+
+.rodape {
+  padding: 4.5rem 1.5rem 5rem;
+  text-align: center;
+  background: var(--fundo-profundo);
+  border-top: 1px solid rgba(217, 164, 65, 0.15);
+}
+.rodape .filete { transform: scaleX(1); }
+.rodape-marca {
+  font-size: 1.5rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ouro-claro);
+}
+.rodape-linha {
+  margin-top: 0.9rem;
+  font-size: 0.88rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+.rodape-nota {
+  margin-top: 2rem;
+  font-size: 0.85rem;
+  opacity: 0.45;
+}
+
+/* ============================================================
+   REVEAL — a classe `.dentro` é posta pelo IntersectionObserver.
+   O estado base já é o VISÍVEL quando não há JS: `.revela` só ganha
+   o deslocamento se o script confirmar que vai observar (`js-motion`
+   no <html>). Sem isso, JS bloqueado deixaria a página em branco.
+   ============================================================ */
+
+.js-motion .revela,
+.js-motion .entra {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
+  transition: opacity var(--longa) var(--easing) var(--atraso, 0ms),
+              transform var(--longa) var(--easing) var(--atraso, 0ms);
+}
+.js-motion .revela.dentro,
+.js-motion .entra.dentro {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Stagger da galeria e dos volumes: cada filho entra depois do anterior. */
+.galeria figure:nth-child(2) { --atraso: 70ms; }
+.galeria figure:nth-child(3) { --atraso: 140ms; }
+.galeria figure:nth-child(4) { --atraso: 210ms; }
+.galeria figure:nth-child(5) { --atraso: 280ms; }
+.galeria figure:nth-child(6) { --atraso: 350ms; }
+
+/* ---------- mobile ---------- */
+
+@media (max-width: 780px) {
+  .volume { grid-template-columns: 1fr; gap: 2rem; }
+  .volume:nth-child(even) .volume-capa { order: 0; }
+  .volume-capa { max-width: 260px; margin-inline: auto; }
+  .heroi { min-height: 92svh; padding-top: 5rem; }
+  .heroi-arte img { animation: none; transform: scale(1.08); }
+  .citacao { padding-left: 1.2rem; }
+  .download-botoes .botao { width: 100%; }
+}
+
+/* ---------- quem pediu menos movimento ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .js-motion .revela,
+  .js-motion .entra {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .filete { transform: scaleX(1); transition: none; }
+  .heroi-arte img { animation: none; transform: scale(1.08); }
+  .rolar span { animation: none; }
+  .botao:hover, .volume:hover .volume-capa img, .galeria figure:hover img {
+    transform: none;
+  }
+}
